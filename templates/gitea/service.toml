@@ -1,0 +1,34 @@
+###############################
+############ROUTERS############
+###############################
+[http.routers]
+  [http.routers.${SERVICE}]
+    entryPoints = ["websecure"]
+    rule = "Host(`${CFG_HOST}`)"
+    service = "${SERVICE}"
+    [http.routers.${SERVICE}.tls]
+      certResolver = "prod"
+
+# [tcp]
+#   [tcp.routers]
+#     [tcp.routers.${SERVICE}]
+#       entryPoints = ["ssh_${SERVICE}"]
+#       rule = "HostSNI(`*`)"
+#       service = "${SERVICE}"
+
+###############################
+###########SERVICES############
+###############################
+[http.services]
+  [http.services.${SERVICE}.loadBalancer]
+    [[http.services.${SERVICE}.loadBalancer.servers]]
+      url = "http://localhost:${CFG_PORT}/"
+
+# [tcp.services]
+#   [tcp.services.${SERVICE}.loadBalancer]
+#      [[tcp.services.${SERVICE}.loadBalancer.servers]]
+#         address = "localhost:${CFG_PORT_SSH}"
+
+###############################
+##########MIDDLEWARES##########
+###############################

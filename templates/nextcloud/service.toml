@@ -1,0 +1,37 @@
+###############################
+############ROUTERS############
+###############################
+  [http.routers.${SERVICE}]
+    entryPoints = ["websecure"]
+    rule = "Host(`${CFG_HOST}`)"
+    service = "${SERVICE}"
+    middlewares = ["${SERVICE}-redirectregex","${SERVICE}-header"]
+    [http.routers.${SERVICE}.tls]
+      certResolver = "prod"
+
+###############################
+###########SERVICES############
+###############################
+[http.services]
+  [http.services.${SERVICE}.loadBalancer]
+    [[http.services.${SERVICE}.loadBalancer.servers]]
+      url = "http://localhost:${CFG_PORT}/"
+
+
+###############################
+##########MIDDLEWARES##########
+###############################
+[http.middlewares]
+
+  ### This section redirects requests for Nextcloud calendar and contacts service discovery
+  ### source: https://docs.nextcloud.com/server/21/admin_manual/issues/general_troubleshooting.html#service-discovery
+  [http.middlewares.${SERVICE}-redirectregex.redirectRegex]
+    permanent = true
+    regex = "https://(.*)/.well-known/(card|cal)dav"
+    replacement = "https://${1}/remote.php/dav/"
+
+  [http.middlewares.${SERVICE}-header.headers] # Headers for onlyoffice, https://github.com/ONLYOFFICE/onlyoffice-nextcloud/issues/151
+    accessControlAllowOrigin = "*"
+    stsSeconds = 315360000
+    [http.middlewares.${SERVICE}-header.headers.customRequestHeaders]
+      X-Forwarded-Proto = "https"
