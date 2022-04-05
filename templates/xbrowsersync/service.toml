@@ -6,7 +6,6 @@
     entryPoints = ["websecure"]
     rule = "Host(`${CFG_HOST}`)"
     service = "${SERVICE}"
-    middlewares = [ "ip_${SERVICE}"]
     [http.routers.${SERVICE}.tls]
       certResolver = "prod"
 
@@ -21,8 +20,3 @@
 ###############################
 ##########MIDDLEWARES##########
 ###############################
-
-[http.middlewares]
-  [http.middlewares.ip_${SERVICE}.ipWhiteList]
-    sourceRange = ["127.0.0.1/24", "${CFG_WHITELIST}" ]
-

@@ -17,7 +17,6 @@ function host_setup {
   #Create container storage
   if [[ "${COMMAND}" == "install" ]]; then
     mkdir -vp "${HOME}"/containers/config
-    podman unshare chown 1000:1000 /var/syncthing/config
   fi
 }
 
@@ -33,6 +32,8 @@ function service_set {
     -v "${HOME}"/containers/config:/var/syncthing/config \
     -v "${CFG_PATH_DATA}":/mnt/syncthing \
     "${CFG_IMAGE}"
+
+  podman unshare chown 1000:1000 "${HOME}"/containers/config
 
 }
 

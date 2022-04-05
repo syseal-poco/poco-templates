@@ -4,9 +4,12 @@
 ######################################################################################
 function service_edit {
 
-  if [[ -z "$1" ]] && [[ -z "${ADMIN_TOKEN}" ]]; then
-    ADMIN_TOKEN=$(openssl rand -base64 48)
-    edit_conf_files_equal ADMIN_TOKEN "${ADMIN_TOKEN}" configs/app.env
+  if [[ -z "$1" ]]; then
+    if [[ -z "${ADMIN_TOKEN}" ]]; then
+      ADMIN_TOKEN=$(openssl rand -base64 48)
+      edit_conf_files_equal ADMIN_TOKEN "${ADMIN_TOKEN}" configs/app.env
+    fi
+    ask_ip_cidr_helper CFG_WHITELIST "${SERVICE_ENV}"
   fi
 
 }

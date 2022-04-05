@@ -22,15 +22,11 @@ function service_edit {
   elif [[ "$1" == "service.env" ]]; then
     ask_path_helper "folder" CFG_PATH_DATA "${SERVICE_ENV}"
     ask_path_helper "folder" CFG_PATH_USER "${SERVICE_ENV}"
-    ask_path_helper "folder" CFG_PATH_RO "${SERVICE_ENV}"
   fi
 
 }
 
 function host_setup {
-
-  #Set Permission for nextcloud folders
-  chown -vR "${SERVICE}":"${SERVICE}" "${CFG_PATH_DATA:?}"
 
   #Create container storage
   if [[ "${COMMAND}" == "install" ]]; then
@@ -38,8 +34,8 @@ function host_setup {
   fi
   if [[ "${COMMAND}" == "install" ]] || [[ "${COMMAND}" == "restore" ]]; then
     chown -v root:"${CFG_GROUP}" "${CFG_PATH_USER}"
-    chown -v root:"${CFG_GROUP}" "${CFG_PATH_RO}"
-    chown
+    #Set Permission for nextcloud folders
+    chown -vR "${SERVICE}":"${SERVICE}" "${CFG_PATH_DATA:?}"
   fi
 
 }
@@ -61,8 +57,8 @@ function service_set {
     --label "io.containers.autoupdate=registry" \
     --env-file "${HOME}/configs/app.env" \
     -v "${CFG_PATH_DATA}":/var/www/html/data \
-    -v "${HOME}"/containers/nextcloud/html:/var/www/html \
     -v "${CFG_PATH_USER}":/mnt/users:z \
+    -v "${HOME}"/containers/nextcloud/html:/var/www/html \
     "${CFG_IMAGE_NC}"
 
 }
@@ -80,7 +76,15 @@ function service_exec {
   #     echo "Command fail, container not up yet"
   #     sleep 5
   # done
-  podman unshare chown -R www-data:www-data /var/www/html
-  podman unshare find "${CFG_PATH_DATA}" -type d -exec chmod 750 {} \;
-  podman unshare find "${CFG_PATH_DATA}" -type f -exec chmod 640 {} \;
+  if [[ "${COMMAND}" == "install" ]] || [[ "${COMMAND}" == "restore" ]]; then
+    #Data Permissions update
+    podman unshare chown -R www-data:www-data "${CFG_PATH_DATA}"
+    podman unshare find "${CFG_PATH_DATA}" -type d -exec chmod 750 {} \;
+    podman unshare find "${CFG_PATH_DATA}" -type f -exec chmod 640 {} \;
+
+    #Mounted volume user update
+    podman unshare chown -R www-data "${CFG_PATH_USER}"
+    podman unshare find "${CFG_PATH_USER}" -type d -exec chmod 2770 {} \;
+    podman unshare find "${CFG_PATH_USER}" -type f -exec chmod 0660 {} \;
+  fi
 }

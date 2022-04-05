@@ -26,7 +26,7 @@ function host_setup {
 
   #HACK: change permission to dri device. podman got issue (https://www.redhat.com/sysadmin/files-devices-podman)
   #Podman users are running into a problem accessing files and devices within a container, even when the users have access to those resources on the host
-  find /dev/dri -type c -print0 | xargs -0 chmod -v o+rw
+  #find /dev/dri -type c -print0 | xargs -0 chmod -v o+rw
 
 }
 
@@ -34,9 +34,10 @@ function host_setup {
 function host_event {
 
   #Change permissions for gpu card(s)
-  if [[ "$1" == "boot" ]]; then
-    find /dev/dri -type c -print0 | xargs -0 chmod -v o+rw
-  fi
+  #if [[ "$1" == "boot" ]]; then
+  #  find /dev/dri -type c -print0 | xargs -0 chmod -v o+rw
+  #fi
+  return 0
 }
 
 function service_set {
@@ -48,7 +49,7 @@ function service_set {
     -p 7359:7359/udp \
     -e JELLYFIN_PublishedServerUrl=https://"${CFG_HOST}" \
     --label "io.containers.autoupdate=registry" \
-    --device /dev/dri:/dev/dri \
+    --device /dev/dri:/dev/dri:dev \
     -v "${HOME}"/containers/jellyfin/config:/config \
     -v "${HOME}"/containers/jellyfin/cache:/cache \
     -v "${PATH_MEDIA}":/mnt:ro,z \
